@@ -1,0 +1,210 @@
+\documentclass[11pt,a4paper]{report}
+
+%%% Работа с русским языком
+\usepackage{cmap}					% поиск в PDF
+\usepackage{mathtext} 				% русские буквы в фомулах
+\usepackage[T2A]{fontenc}			% кодировка
+\usepackage[utf8]{inputenc}			% кодировка исходного текста
+\usepackage[english,russian]{babel}	% локализация и переносы
+
+\usepackage{fancyhdr}
+
+\usepackage{lipsum}
+\usepackage{etoolbox}
+
+% Code in Latex
+\usepackage{listings}
+
+%%% Работа с картинками
+\usepackage{graphicx}  % Для вставки рисунков
+%\graphicspath{{images/}}  % папки с картинками
+\setlength\fboxsep{3pt} % Отступ рамки \fbox{} от рисунка
+\setlength\fboxrule{1pt} % Толщина линий рамки \fbox{}
+\usepackage{wrapfig} % Обтекание рисунков и таблиц текстом
+\usepackage[export]{adjustbox}
+
+%%% Дополнительная работа с математикой
+\usepackage{amsmath,amsfonts,amssymb,amsthm,mathtools} % AMS
+\usepackage{icomma} % "Умная" запятая: $0,2$ --- число, $0, 2$ --- перечисление
+\usepackage{systeme}
+
+\patchcmd{\maketitle}
+  {\end{titlepage}}
+  {\thispagestyle{titlepagestyle}\end{titlepage}}
+  {}{}
+
+\fancypagestyle{titlepagestyle}
+{
+   \fancyhf{}
+   \fancyfoot[C]{3 курс, 3 группа}
+   \renewcommand{\headrulewidth}{0 mm}
+}
+
+\pagestyle{plain}
+
+\begin{document}
+
+\title{Отчет по лабораторной работе №2}
+
+\author{Снопов П.М.}
+\thispagestyle{titlepagestyle}
+\maketitle
+\begin{center}
+	\textbf{Лабораторная работа №2}
+	
+	Метод Халецкого для решения переопределенных СЛАУ
+	
+	\textit{Вариант 10}
+\end{center}
+
+\paragraph{1. Постановка задачи}
+Необходимо решить переопределенную СЛАУ. Т.е. СЛАУ, у которой число уравнений больше, чем число неизвестных. Пусть $A \in \boldsymbol{M}_{N \times S}(\mathbb{R}) $, где $N>S$. Также определим диагональную матрицу весов $B \in \boldsymbol{M}_{S}(\mathbb{R})$.
+\newline
+Т.е. нужно решить уравнение $Ax=f$.
+
+\paragraph{2. Метод решения}
+Приведем матрицу $A$ к квадратному виду, умножив слева на $A^T$. Тогда получим уравнение $A^TAx=A^Tf$, где $A^TA \in \boldsymbol{M}_{S}(\mathbb{R})$. Так как имеем матрицу весов $B$, то тогда уравнение имеет вид $A^TBAx=A^TBf$. Пусть $\hat{A} = A^TBA$, $\hat{f} = A^TBf$, тогда уравнение имеет вид $\hat{A}x = \hat{f}$, где $\hat{A} \in \boldsymbol{M}_{S}(\mathbb{R})$.
+\newline
+Заметим, что $\hat{A}$ -- симметричная, положительно-определенная матрица, а значит $\hat{A} = LL^T$, где $L$ -- нижняя треугольная матрица. Тогда составим систему из 2 уравнений:
+\[
+\left\{\begin{aligned}
+	&Ly    = \hat{f}\\
+	&L^Tx = \hat{f}
+\end{aligned}\right.
+\]
+
+%Сложность алгоритма $\mathcal{O}(n)$ 
+\paragraph{3. Основные процедуры}
+Основные функции, используемые при решении задачи:
+
+
+\begin{lstlisting}[language=Python]
+	def cholesky(A, b, f):
+\end{lstlisting}
+Функция, которая совершает разложение Холецкого для переопределенной СЛАУ с вектором весовых коэффициентов.
+\begin{lstlisting}[language=Python]
+	def residual(A, x, f):
+\end{lstlisting}
+Функция, которая считает вектор невязки и его норму.
+\paragraph{4. Результаты тестирования}
+Для тестирования возьмем следующую систему уравнений:
+\[
+\left\{\begin{aligned}
+&x = 0\\
+&y = 0\\
+&2x + y = 8
+\end{aligned}\right.
+\]
+Для следующих весовых коэффициентов: $\{(1,1,1), (2,2,1), (1,1,2)\}$.
+\newline
+Найдем решение, посчитаем вектор невязки и его норму:
+\begin{table}[htbp]
+	\begin{center}
+		\caption{Таблица тестирования}
+		\begin{tabular}{|c|c|c|c|}
+			\hline
+			Вектор весов & Решение системы & Вектор невязки  & Норма вектора невязки \\
+			\hline
+			$(1,1,1)$ & $(2.667, 1.333)^T$ & $(2.667, 1.333,-1.333)^T$& 3.266\\
+			\hline
+			$(2,2,1)$ & $(2.286, 1.143)^T$ & $(2.286, 1.143,-2.286)^T$& 3.429\\
+			\hline
+			$(1,1,2)$ & $(2.909, 1.455)^T$ & $(2.909, 1.455,-0.727)^T$& 3.333 \\
+			\hline
+		\end{tabular}	
+	\end{center}
+\end{table}
+Проверим результаты, решив вручную систему:
+\newline
+\subparagraph{Решение системы для вектора весов $(1,1,1)$}
+Диагональная матрица весов является единичной матрицей, поэтому умножение на нее не изменяет коэффциентов системы. Имеем следующее уравнение:
+\begin{gather*}
+	\begin{pmatrix} 1&0\\0&1\\2&1 \end{pmatrix}\begin{pmatrix} x\\y \end{pmatrix}=\begin{pmatrix} 0\\0\\8 \end{pmatrix}
+\end{gather*}
+Домножим слева на $\begin{pmatrix} 1&0\\0&1\\2&1 \end{pmatrix}^T$:
+\begin{gather*}
+	\begin{pmatrix} 1&0&2\\0&1&1 \end{pmatrix}\begin{pmatrix} 1&0\\0&1\\2&1 \end{pmatrix}\begin{pmatrix} x\\y \end{pmatrix}=\begin{pmatrix} 1&0&2\\0&1&1 \end{pmatrix}\begin{pmatrix} 0\\0\\8 \end{pmatrix}
+\end{gather*}
+Тогда:
+\begin{gather*}
+	\begin{pmatrix} 5&2\\2&2 \end{pmatrix}\begin{pmatrix} x\\y \end{pmatrix}=\begin{pmatrix} 16\\8 \end{pmatrix}
+\end{gather*}
+Отсюда:
+\begin{gather*}
+	\begin{pmatrix} 1&0\\0&1 \end{pmatrix}\begin{pmatrix} x\\y \end{pmatrix}=\begin{pmatrix} \dfrac{8}{3}\\[2ex]\dfrac{4}{3} \end{pmatrix}
+\end{gather*}
+Т.е. $\tilde{x} = \begin{pmatrix} \dfrac{8}{3}\\[2ex]\dfrac{4}{3} \end{pmatrix}$. Посчитаем теперь $A\tilde{x}$:
+\begin{gather*}
+	\begin{pmatrix} 1&0\\0&1\\2&1 \end{pmatrix}\begin{pmatrix} \dfrac{8}{3}\\[2ex]\dfrac{4}{3} \end{pmatrix}=\begin{pmatrix} \dfrac{8}{3}\\[2ex]\dfrac{4}{3}\\[2ex]\dfrac{20}{3} \end{pmatrix} =: \tilde{f}
+\end{gather*}
+Теперь посчитаем вектор невязки $f_r = f - \tilde{f}$ и его (евклидову) норму $f_r = (\sum_{i=1}^{N} f_r(i)^2)^{\frac{1}{2}}$:
+\begin{gather*}
+	f_r =  \begin{pmatrix} \dfrac{8}{3}\\[2ex]\dfrac{4}{3}\\[2ex]\dfrac{20}{3} \end{pmatrix} - \begin{pmatrix} 0\\0\\8 \end{pmatrix} = \begin{pmatrix} \dfrac{8}{3}\\[2ex]\dfrac{4}{3}\\[2ex]-\dfrac{4}{3} \end{pmatrix}
+\end{gather*}
+\[
+f_r = (\sum_{i=1}^{N} f_r(i)^2)^{\frac{1}{2}} = \frac{4}{3}\sqrt6
+\]
+\subparagraph{Решение системы для вектора весов $(2,2,1)$}  % ИЗМЕНИТЬ
+Имеем следующее уравнение:
+\begin{gather*}
+\begin{pmatrix} 1&0\\0&1\\2&1 \end{pmatrix}\begin{pmatrix} x\\y \end{pmatrix}=\begin{pmatrix} 0\\0\\8 \end{pmatrix}
+\end{gather*}
+Домножим слева на $\begin{pmatrix} 1&0\\0&1\\2&1 \end{pmatrix}^T\begin{pmatrix} 2&0&0\\0&2&0\\0&0&1 \end{pmatrix}$:
+\begin{gather*}
+\begin{pmatrix} 1&0\\0&1\\2&1 \end{pmatrix}^T\begin{pmatrix} 2&0&0\\0&2&0\\0&0&1 \end{pmatrix}\begin{pmatrix} 1&0\\0&1\\2&1 \end{pmatrix}\begin{pmatrix} x\\y \end{pmatrix}=\begin{pmatrix} 1&0\\0&1\\2&1 \end{pmatrix}^T\begin{pmatrix} 2&0&0\\0&2&0\\0&0&1 \end{pmatrix}\begin{pmatrix} 0\\0\\8 \end{pmatrix}
+\end{gather*}
+Тогда:  
+\begin{gather*}
+\begin{pmatrix} 6&2\\2&3 \end{pmatrix}\begin{pmatrix} x\\y \end{pmatrix}=\begin{pmatrix} 16\\8 \end{pmatrix}
+\end{gather*}
+Отсюда:
+\begin{gather*}
+\begin{pmatrix} 1&0\\0&1 \end{pmatrix}\begin{pmatrix} x\\y \end{pmatrix}=\begin{pmatrix} \dfrac{16}{7}\\[2ex]\dfrac{8}{7} \end{pmatrix}
+\end{gather*}
+Т.е. $\tilde{x} = \begin{pmatrix} \dfrac{16}{7}\\[2ex]\dfrac{8}{7} \end{pmatrix}$. Посчитаем теперь $A\tilde{x}$:
+\begin{gather*}
+\begin{pmatrix} 1&0\\0&1\\2&1 \end{pmatrix}\begin{pmatrix} \dfrac{16}{7}\\[2ex]\dfrac{8}{7} \end{pmatrix}=\begin{pmatrix} \dfrac{16}{7}\\[2ex]\dfrac{8}{7}\\[2ex]\dfrac{40}{7} \end{pmatrix} =: \tilde{f}
+\end{gather*}
+Теперь посчитаем вектор невязки $f_r = f - \tilde{f}$ и его (евклидову) норму $f_r = (\sum_{i=1}^{N} f_r(i)^2)^{\frac{1}{2}}$:
+\begin{gather*}
+f_r =  \begin{pmatrix} \dfrac{16}{7}\\[2ex]\dfrac{8}{7}\\[2ex]\dfrac{40}{7} \end{pmatrix} - \begin{pmatrix} 0\\0\\8 \end{pmatrix} = \begin{pmatrix} \dfrac{16}{7}\\[2ex]\dfrac{8}{7}\\[2ex]-\dfrac{16}{7} \end{pmatrix}
+\end{gather*}
+\[
+f_r = (\sum_{i=1}^{N} f_r(i)^2)^{\frac{1}{2}} = \frac{24}{7}
+\]
+\subparagraph{Решение системы для вектора весов $(1,1,2)$} 
+Имеем следующее уравнение:
+\begin{gather*}
+\begin{pmatrix} 1&0\\0&1\\2&1 \end{pmatrix}\begin{pmatrix} x\\y \end{pmatrix}=\begin{pmatrix} 0\\0\\8 \end{pmatrix}
+\end{gather*}
+Домножим слева на $\begin{pmatrix} 1&0\\0&1\\2&1 \end{pmatrix}^T\begin{pmatrix} 1&0&0\\0&1&0\\0&0&2 \end{pmatrix}$:
+\begin{gather*}
+\begin{pmatrix} 1&0\\0&1\\2&1 \end{pmatrix}^T\begin{pmatrix} 1&0&0\\0&1&0\\0&0&2 \end{pmatrix}\begin{pmatrix} 1&0\\0&1\\2&1 \end{pmatrix}\begin{pmatrix} x\\y \end{pmatrix}=\begin{pmatrix} 1&0\\0&1\\2&1 \end{pmatrix}^T\begin{pmatrix} 1&0&0\\0&1&0\\0&0&2 \end{pmatrix}\begin{pmatrix} 0\\0\\8 \end{pmatrix}
+\end{gather*}
+Тогда:  
+\begin{gather*}
+\begin{pmatrix} 9&4\\4&3 \end{pmatrix}\begin{pmatrix} x\\y \end{pmatrix}=\begin{pmatrix} 32\\16 \end{pmatrix}
+\end{gather*}
+Отсюда:
+\begin{gather*}
+\begin{pmatrix} 1&0\\0&1 \end{pmatrix}\begin{pmatrix} x\\y \end{pmatrix}=\begin{pmatrix} \dfrac{32}{11}\\[2ex]\dfrac{16}{11} \end{pmatrix}
+\end{gather*}
+Т.е. $\tilde{x} = \begin{pmatrix} \dfrac{32}{11}\\[2ex]\dfrac{16}{11} \end{pmatrix}$. Посчитаем теперь $A\tilde{x}$:
+\begin{gather*}
+\begin{pmatrix} 1&0\\0&1\\2&1 \end{pmatrix}\begin{pmatrix} \dfrac{32}{11}\\[2ex]\dfrac{16}{11} \end{pmatrix}=\begin{pmatrix} \dfrac{32}{11}\\[2ex]\dfrac{16}{11}\\[2ex]\dfrac{80}{11} \end{pmatrix} =: \tilde{f}
+\end{gather*}
+Теперь посчитаем вектор невязки $f_r = \tilde{f} - f$ и его (евклидову) норму $f_r = (\sum_{i=1}^{N} f_r(i)^2)^{\frac{1}{2}}$:
+\begin{gather*}
+f_r =  \begin{pmatrix} \dfrac{32}{11}\\[2ex]\dfrac{16}{11}\\[2ex]\dfrac{80}{11} \end{pmatrix} - \begin{pmatrix} 0\\0\\8 \end{pmatrix} = \begin{pmatrix} \dfrac{32}{11}\\[2ex]\dfrac{16}{11}\\[2ex]-\dfrac{8}{11} \end{pmatrix}
+\end{gather*}
+\[
+f_r = (\sum_{i=1}^{N} f_r(i)^2)^{\frac{1}{2}} = \frac{8}{11}\sqrt{21}
+\]
+\subparagraph{График системы}
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\linewidth, keepaspectratio=true]{plot.png}
+	\caption{График системы и полученных точек}
+	\label{fig:plot}
+\end{figure}
+\end{document}

@@ -1,0 +1,9 @@
+*.log
+*.aux
+*.ipynb
+*.synctex.gz
+*.ipynb_checkpoints
+Lab1/Lab1Files/
+*/__pycache__
+*/draft.*
+*/plot*.*
