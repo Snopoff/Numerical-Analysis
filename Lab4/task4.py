@@ -83,13 +83,27 @@ def solve(f: Callable):
     a, b, c, y_c = data[0]
     h_min, h_max, eps = data[1]
     h = (b - a) / 10
-    """steer = 1 
-    if c == b: steer = -1
+    steer = 1
+    if c == b:
+        steer = -1
     X = [c]
     Y = [y_c]
-    x = x + steer * h
+    x = c
     while a <= x and x <= b:
-        y = estimate(f,h,x,y)"""
+        y = Y[-1]
+        Y.append(estimate(f, h, x, y))
+        y_hat = optimize(f, h, x, y)
+        x = x + steer * h
+        X.append(x)
+        eps_n = abs(Y[-1] - y_hat)
+        h_e = np.power(eps_n/eps, 0.25) * h
+        if h_e < h_min:
+            h = h_min
+        elif h_e > h_max:
+            h = h_max
+        else:
+            h = h_e
+    return X, Y
 
 
 def f(x: float, y=0) -> float:
