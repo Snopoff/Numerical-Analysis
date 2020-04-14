@@ -1,4 +1,4 @@
 #first row: a,b,c,y_c
 #second row: h_min, h_max, eps
-0 10 2 6
-0.005 0.1 0.0004
+0 1 0 0
+0.00001 0.0001 0.000001

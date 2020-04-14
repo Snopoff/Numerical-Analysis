@@ -1,5 +1,5 @@
 # Задача 11; Вариант 3
-
+# %%
 """
 Решение задачи Коши с заданной точностью 
 с автоматическим выбором максимальной длины шага
@@ -9,8 +9,10 @@ y(c) = y_c : c ∈ {a,b}
 
 """
 
-import numpy as np
 from typing import Callable
+import numpy as np
+from scipy.integrate import odeint
+import matplotlib.pyplot as plt
 
 filename = 'data.txt'
 
@@ -30,7 +32,10 @@ def get_data(name: str) -> list:
     return parameters
 
 
-def estimate(f: Callable, h: float, x: float, y=0):
+# def give_data()
+
+
+def estimate(f: Callable, h: float, x: float, y=0) -> float:
     """ 
     Runge-Kutta method for solving ODE
 
@@ -47,7 +52,7 @@ def estimate(f: Callable, h: float, x: float, y=0):
     return y + k2
 
 
-def optimize(f: Callable, h: float, x: float, y=0):
+def optimize(f: Callable, h: float, x: float, y=0) -> float:
     """ 
     Runge-Kutta method for optimizing solution 
 
@@ -66,11 +71,7 @@ def optimize(f: Callable, h: float, x: float, y=0):
     return y + (k1 + 2*k2 + 2*k3 + k4) / 6
 
 
-def step() -> float:
-    pass
-
-
-def solve(f: Callable):
+def solve(f: Callable) -> list:
     """ 
     ODE Solver using Runge-Kutta method of 2nd order  
 
@@ -86,16 +87,18 @@ def solve(f: Callable):
     steer = 1
     if c == b:
         steer = -1
-    X = [c]
+    X = []
     Y = [y_c]
+    Eps = []
     x = c
     while a <= x and x <= b:
+        X.append(x)
         y = Y[-1]
         Y.append(estimate(f, h, x, y))
         y_hat = optimize(f, h, x, y)
         x = x + steer * h
-        X.append(x)
         eps_n = abs(Y[-1] - y_hat)
+        Eps.append(eps_n)
         h_e = np.power(eps_n/eps, 0.25) * h
         if h_e < h_min:
             h = h_min
@@ -103,7 +106,7 @@ def solve(f: Callable):
             h = h_max
         else:
             h = h_e
-    return X, Y
+    return X, Y[:-1], Eps
 
 
 def f(x: float, y=0) -> float:
@@ -111,15 +114,37 @@ def f(x: float, y=0) -> float:
     RHS of given ODE
     """
 
-    return x**2
+    return 12*x**2
+
+
+def F(x: float, y=0) -> float:
+    """
+    Such function that dF = fdt
+    """
+    return 4*x**3
 
 
 def main():
-    X, Y = solve(f)
+    X, Y, Eps = solve(f)
     for i in range(len(X)):
-        print('f({:.4f}) = {:.4f}'.format(X[i], Y[i]))
+        print('f({:.8f}) = {:.8f}'.format(X[i], Y[i]))
+
     ''' --plot is probably needed here-- '''
+
+    data = get_data(filename)
+    a, b, c, y_c = data[0]
+    x = np.linspace(a, b, len(X))
+    y = F(x)
+    plt.plot(x, y, "k-", label='Точное решение')
+    plt.plot(X, Y, "g--", label='Численное решение')
+    plt.legend(loc='best')
+    plt.title('График заданной функции')
+    plt.savefig('graphs.png')
+    plt.show()
 
 
 if __name__ == "__main__":
     main()
+
+
+# %%
