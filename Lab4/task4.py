@@ -32,7 +32,13 @@ def get_data(name: str) -> list:
     return parameters
 
 
-# def give_data()
+def give_data(X: list, Y: list):
+    """
+    Write output in the file
+    """
+    with open('output.txt', "w+") as f:
+        for i in range(len(X)):
+            f.write('f({:.8f}) = {:.8f}\n'.format(X[i], Y[i]))
 
 
 def estimate(f: Callable, h: float, x: float, y=0) -> float:
@@ -129,6 +135,9 @@ def main():
     for i in range(len(X)):
         print('f({:.8f}) = {:.8f}'.format(X[i], Y[i]))
 
+    print(len(X), len(Eps))
+
+    give_data(X, Y)
     ''' --plot is probably needed here-- '''
 
     data = get_data(filename)
