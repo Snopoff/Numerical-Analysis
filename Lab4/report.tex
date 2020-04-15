@@ -122,7 +122,7 @@
 \[
 h_e := \sqrt[\leftroot{-2}\uproot{5}\frac{1}{4}]{\frac{\varepsilon_n}{\varepsilon}}h
 \]
-где $ \varepsilon_n := |\hat{y_n} - \tilde{y_n} | $, где $\hat{y_n}$ -- значение, полученное методом второго порядка, а $\tilde{y_n}$-- методом четвертого порядка. Далее проводим выбор шага следующим образом:
+где $ \varepsilon_n := |\hat{y}_n - \tilde{y}_n | $, где $\hat{y}_n$ -- значение, полученное методом второго порядка, а $\tilde{y}_n$-- методом четвертого порядка. Далее проводим выбор шага следующим образом:
 
 \[
 h_n = \begin{cases}
@@ -148,6 +148,10 @@ def optimize(f: Callable, h: float, x: float, y=0) -> float:
 def get_data(name: str) -> list:
 \end{lstlisting}
 Функция для получения данных
+\begin{lstlisting}
+def give_data(X:list, Y:list):
+\end{lstlisting}
+Функция записывающая полученные данные
 \begin{lstlisting}
 def solve(f: Callable) -> list:
 \end{lstlisting}

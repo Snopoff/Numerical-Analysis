@@ -145,7 +145,7 @@ def main():
     x = np.linspace(a, b, len(X))
     y = F(x)
     plt.plot(x, y, "k-", label='Точное решение')
-    plt.plot(X, Y, "g--", label='Численное решение')
+    plt.plot(X, Y, "r--", label='Численное решение')
     plt.legend(loc='best')
     plt.title('График заданной функции')
     plt.savefig('graphs.png')
