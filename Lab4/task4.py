@@ -1,7 +1,7 @@
 # Задача 11; Вариант 3
 # %%
 """
-Решение задачи Коши с заданной точностью 
+Решение задачи Коши с заданной точностью
 с автоматическим выбором максимальной длины шага
 
 y' = f(x,y) : x ∈ [a,b]
@@ -32,22 +32,24 @@ def get_data(name: str) -> list:
     return parameters
 
 
-def give_data(X: list, Y: list):
+def give_data(X: list, Y: list, count_eps: int, count_min: int, count_max: int):
     """
     Write output in the file
     """
     with open('output.txt', "w+") as f:
         for i in range(len(X)):
             f.write('f({:.8f}) = {:.8f}\n'.format(X[i], Y[i]))
+        f.write('{}, {}, {}, {}'.format(
+            len(X), count_eps, count_min, count_max))
 
 
 def estimate(f: Callable, h: float, x: float, y=0) -> float:
-    """ 
+    """
     Runge-Kutta method for solving ODE
 
         Parameters:
         ----------
-        f : RHS of given ODE 
+        f : RHS of given ODE
         h : step
         x : float number x: y: x -> y(x)
         y : desirable function
@@ -59,12 +61,12 @@ def estimate(f: Callable, h: float, x: float, y=0) -> float:
 
 
 def optimize(f: Callable, h: float, x: float, y=0) -> float:
-    """ 
-    Runge-Kutta method for optimizing solution 
+    """
+    Runge-Kutta method for optimizing solution
 
         Parameters:
         ----------
-        f : RHS of given ODE 
+        f : RHS of given ODE
         h : step
         x : float number x: y: x -> y(x)
         y : desirable function
@@ -78,14 +80,15 @@ def optimize(f: Callable, h: float, x: float, y=0) -> float:
 
 
 def solve(f: Callable) -> list:
-    """ 
-    ODE Solver using Runge-Kutta method of 2nd order  
+    """
+    ODE Solver using Runge-Kutta method of 2nd order
 
         Parameters:
         ----------
-        f : RHS of given ODE 
+        f : RHS of given ODE
     """
-
+    count_min = 0
+    count_max = 0
     data = get_data(filename)
     a, b, c, y_c = data[0]
     h_min, h_max, eps = data[1]
@@ -108,11 +111,14 @@ def solve(f: Callable) -> list:
         h_e = np.power(eps_n/eps, 0.25) * h
         if h_e < h_min:
             h = h_min
+            count_min += 1
         elif h_e > h_max:
             h = h_max
+            count_max += 1
         else:
             h = h_e
-    return X, Y[:-1], Eps
+    count_eps = sum(e < eps for e in Eps)
+    return X, Y[:-1], count_eps, count_min, count_max
 
 
 def f(x: float, y=0) -> float:
@@ -131,13 +137,11 @@ def F(x: float, y=0) -> float:
 
 
 def main():
-    X, Y, Eps = solve(f)
+    X, Y, count_eps, count_min, count_max = solve(f)
     for i in range(len(X)):
         print('f({:.8f}) = {:.8f}'.format(X[i], Y[i]))
 
-    print(len(X), len(Eps))
-
-    give_data(X, Y)
+    give_data(X, Y, count_eps, count_min, count_max)
     ''' --plot is probably needed here-- '''
 
     data = get_data(filename)
