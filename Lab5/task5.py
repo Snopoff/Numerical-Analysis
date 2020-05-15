@@ -86,28 +86,55 @@ def forward(X: dict, b_cond1: list, interval: list):
     a, b, n = interval
     h = (b - a) / n
 
-    Z1 = od({a: -a0 / b0})
-    Z2 = od({a: A / b0})
+    if b0 != 0:
 
-    # Solve first given differential equation
-    def func(x, z): return - z**2 - p(x)*z + q(x)
+        Z1 = od({a: -a0 / b0})
+        Z2 = od({a: A / b0})
 
-    for i in range(0, len(X)-1):
-        # x = next(reversed(Z1))
-        x = X[i]
-        z = Z1[x]
-        Z1[X[i+1]] = RungeKutta(func, h, x, z)
+        # Solve first given differential equation
+        def func(x, z): return - z**2 - p(x)*z + q(x)
 
-    # solve second given differential equation
-    def func(z1): return lambda x, z: - z * z1 + p(x) + f(x)
+        for i in range(0, len(X)-1):
+            # x = next(reversed(Z1))
+            x = X[i]
+            z = Z1[x]
+            Z1[X[i+1]] = RungeKutta(func, h, x, z)
 
-    for i in range(0, len(X)-1):
-        # x = next(reversed(Z2))
-        x = X[i]
-        z = Z2[x]
-        z1 = Z1[x]
-        Z2[X[i+1]] = RungeKutta(func(z1), h, x, z)
-    return Z1, Z2
+        # solve second given differential equation
+        def func(z1): return lambda x, z: - z * z1 + p(x) + f(x)
+
+        for i in range(0, len(X)-1):
+            # x = next(reversed(Z2))
+            x = X[i]
+            z = Z2[x]
+            z1 = Z1[x]
+            Z2[X[i+1]] = RungeKutta(func(z1), h, x, z)
+        return Z1, Z2
+
+    else:  # so this means a0 != 0
+
+        Z1 = od({a: -b0 / a0})
+        Z2 = od({a: A / a0})
+
+        # Solve first given differential equation
+        def func(x, z): return - z**2 * q(x) - p(x)*z + 1
+
+        for i in range(0, len(X)-1):
+            # x = next(reversed(Z1))
+            x = X[i]
+            z = Z1[x]
+            Z1[X[i+1]] = RungeKutta(func, h, x, z)
+
+        # solve second given differential equation
+        def func(z1): return lambda x, z: -z1 * (z*q(x) + f(x))
+
+        for i in range(0, len(X)-1):
+            # x = next(reversed(Z2))
+            x = X[i]
+            z = Z2[x]
+            z1 = Z1[x]
+            Z2[X[i+1]] = RungeKutta(func(z1), h, x, z)
+        return Z1, Z2
 
 
 def backward(X: dict, b_cond2: list, interval: list, Z1: dict, Z2: dict):
@@ -121,18 +148,36 @@ def backward(X: dict, b_cond2: list, interval: list, Z1: dict, Z2: dict):
     a, b, n = interval
     h = (b - a) / n
 
-    Y = od({b: (B - b1*Z2[b]) / (a1 + b1*Z1[b])})
+    if b0 != 0:
 
-    def func(z1, z2):
-        return lambda x, y: z1*y + z2
+        Y = od({b: (B - b1*Z2[b]) / (a1 + b1*Z1[b])})
 
-    for i in range(len(X)-1, 0, -1):
-        # x = next(reversed(Z2))
-        x = X[i]
-        y = Y[x]
-        z1 = Z1[x]
-        z2 = Z2[x]
-        Y[X[i-1]] = RungeKutta(func(z1, z2), h, x, y)
+        def func(z1, z2):
+            return lambda x, y: z1*y + z2
+
+        for i in range(len(X)-1, 0, -1):
+            # x = next(reversed(Z2))
+            x = X[i]
+            y = Y[x]
+            z1 = Z1[x]
+            z2 = Z2[x]
+            Y[X[i-1]] = RungeKutta(func(z1, z2), h, x, y)
+
+    else:  # thus a0 != 0
+
+        Y = od({b: (B * Z1[b] + b1*Z2[b]) / (b1 + a1*Z1[b])})
+
+        def func(z1, z2):
+            return lambda x, y: (y - z2) / z1
+
+        for i in range(len(X)-1, 0, -1):
+            # x = next(reversed(Z2))
+            x = X[i]
+            y = Y[x]
+            z1 = Z1[x]
+            z2 = Z2[x]
+            Y[X[i-1]] = RungeKutta(func(z1, z2), h, x, y)
+
     return od(reversed(Y.items()))
 
 
