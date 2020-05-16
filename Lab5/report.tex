@@ -62,8 +62,9 @@
 	showstringspaces=false,
 	float=[htb],
 	captionpos=b,
-	basicstyle=\footnotesize,
+	basicstyle=\scriptsize,
 	numberblanklines=false,
+	breaklines=true
 }
 
 
@@ -83,53 +84,68 @@
 
 \paragraph{1. Постановка задачи}
 Метод универсальной дифференциальной прогонки для линейных уравнений второго порядка:
-
-Имеется линейное дифференциальное уравнение второго порядка $ y''(x) + p(x)y'(x) = q(x)y(x) + f(x) $, где $ x \in [A, B] $ с краевыми условиями $ y(C) = y_c $, где $ С \in \{A,B\} $. Необходимо численно решить ОДУ с заданной точностью и автоматическим выбором длины шага.
+\newline
+Имеется линейное дифференциальное уравнение второго порядка 
+\[
+	y''(x) + p(x)y'(x) = q(x)y(x) + f(x) \text{, $ x \in [a, b] $}
+\]
+С краевыми условиями:
+\[
+\begin{aligned}
+& \alpha_0y(a) + \beta_0y'(a) = A \\
+& \alpha_1y(b) + \beta_1y'(b) = B
+\end{aligned}
+\]
+Используя метод дифференциальной прогонки, решить данное дифференциальное уравнение
 \paragraph{2. Метод решения}
-Решать задачу будем методом Рунге-Кутта второго порядка, для уточнения решения будем пользоваться методом Рунге-Кутта четвертого порядка. Явный метод Рунге-Кутта задается формулами:
+Задача решается в 2 этапа: 
+\subparagraph{Прямая прогонка}  Предполагая, что $\beta_0 \neq 0$, решаем 2 независимые друг от друга задачи Коши на $[a,b]$:
 \[
-	\begin{aligned}
-		 & y_{n+1} = y_n + h\sum_{i=1}^s b_ik_i                 \\
-		 & k_1 = f(x_n, y_n)                                    \\
-		 & k_2 = f(x_n + c_2h, y_n + a_{21}hk_1)                \\
-		 & ...                                                  \\
-		 & k_s = f(x_n + c_sh, y_n+\sum_{p=1}^{s-1} a_{sp}hk_p)
-	\end{aligned}.
+	\left\{
+		\begin{aligned}
+			& z_1' = -z_1^2 - p(x)z_1 + q(x) \\
+			& z_1(a) = - \frac{\alpha_0}{\beta_0}
+		\end{aligned}
+	\right.
+	\left\{
+		\begin{aligned}
+			& z_2' = z_2 [z_1 + p(x)] + f(x) \\
+			& z_2(b) = \frac{A}{\beta_0}
+		\end{aligned}
+	\right.
 \]
-
-Где h -- величина шага сетки по $ x $.
-
-Для решения данной задачи воспользуемся следующим методом второго порядка:
+Если $\beta_0 = 0$, то $\alpha_0 \neq 0 \text{Если, конечно} A \neq 0$, и тогда решаем 2 другие независимые друг от друга задачи Коши на $[a,b]$:
 \[
-	\begin{aligned}
-		 & y_{n+1} = y_n + k_2                               \\
-		 & k_1 = hf(x_n,y_n)                                 \\
-		 & k2 = hf(x_n + \frac{1}{2}h, y_n + \frac{1}{2}k_1)
-	\end{aligned}
+	\left\{
+		\begin{aligned}
+			& z_1' = -z_1^2q(x) + z_1p(x) + 1 \\
+			& z_1(a) = - \frac{\beta_0}{\alpha_0}
+		\end{aligned}
+	\right.
+	\left\{
+		\begin{aligned}
+			& z_2' = -z_1[z_2q(x) + f(x)] \\
+			& z_2(b) = - \frac{A}{\alpha_0}
+		\end{aligned}
+	\right.
 \]
-
-А для уточнения данной задачи воспользуемся следующим методом четвертого порядка:
+\subparagraph{Обратная прогонка} При обратной прогонке получаем приближенное решение исходной краевой задачи. Если $\beta_0 \neq 0$, то решаем следующую задачу Коши:
 \[
-	\begin{aligned}
-		 & y_{n+1} = y_n + \frac{1}{6}(k_1 + 2k_2 + 2k_3 + k_4) \\
-		 & k_1 = hf(x_n,y_n)                                    \\
-		 & k_2 = hf(x_n + \frac{1}{2}h, y_n + \frac{1}{2}k_1)   \\
-		 & k_3 = hf(x_n + \frac{1}{2}h, y_n + \frac{1}{2}k_2)   \\
-		 & k_4 = hf(x_n + h, y_n + k_3)
-	\end{aligned}
+	\left\{
+		\begin{aligned}
+			& y' = z_1y + z_2 \\
+			& y(b) = \frac{B - \beta_1z_2(b)}{\alpha_1+\beta_1z_1(b)}
+		\end{aligned}
+	\right.
 \]
-Для начала пусть $ h := \frac{B - A}{10} $. Далее на каждом шагу определяем рекомендуемую длину шага следующим образом:
+Если же $\alpha_0 \neq 0$, то задача Коши имеет вид:
 \[
-	h_e := \sqrt[\leftroot{-2}\uproot{5}\frac{1}{4}]{\frac{\varepsilon_n}{\varepsilon}}h
-\]
-где $ \varepsilon_n := |\hat{y}_n - \tilde{y}_n | $, где $\hat{y}_n$ -- значение, полученное методом второго порядка, а $\tilde{y}_n$-- методом четвертого порядка. Далее проводим выбор шага следующим образом:
-
-\[
-	h_n = \begin{cases}
-		h_{min}, & \text{если $h_e < h_{min}$}           \\
-		h_e,     & \text{если $h_{min} < h_e < h_{max}$} \\
-		h_{max}, & \text{если $h_e > h_{max}$}
-	\end{cases}
+	\left\{
+		\begin{aligned}
+			& y' = \frac{y - z_2}{z_1} \\
+			& y(b) = \frac{Bz_1(b) + \beta_1z_2(b)}{\beta_1+\alpha_1z_1(b)}
+		\end{aligned}
+	\right.
 \]
 
 \paragraph{3. Основные процедуры}
@@ -137,25 +153,24 @@
 
 
 \begin{lstlisting}
-def estimate(f: Callable, h: float, x: float, y=0) -> float:
+def RungeKutta(f: Callable, h: float, x: float, y=0) -> float:
 \end{lstlisting}
-Функция, соответствующая методу Рунге-Кутта второго порядка
+Функция, соответствующая методу Рунге-Кутта 4 порядка(формула Кутта-Менсона)
 \begin{lstlisting}
-def optimize(f: Callable, h: float, x: float, y=0) -> float:
+def forward(X: dict, b_cond1: list, interval: list) -> dict,dict:
 \end{lstlisting}
-Функция, соответствующая методу Рунге-Кутта четвертого порядка
+Функция, реализующая прямую прогонку
 \begin{lstlisting}
-def get_data(name: str) -> list:
+def backward(X: dict, b_cond1: list, b_cond2: list, interval: list, Z1: dict, Z2: dict) -> dict:
 \end{lstlisting}
-Функция для получения данных
+Функция, реализующая обратную прогонку
 \begin{lstlisting}
-def give_data(X:list, Y:list):
+def write_data(X:dict, Y:dict, Yprime:dict):
 \end{lstlisting}
 Функция записывающая полученные данные
 \begin{lstlisting}
-def solve(f: Callable) -> list:
+def solve():
 \end{lstlisting}
 Основная функция, осуществляющая решение задачи.
-\paragraph{3. Графики полученного численного решения и точного}
 
 \end{document}

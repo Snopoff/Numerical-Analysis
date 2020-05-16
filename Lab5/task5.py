@@ -34,14 +34,14 @@ def get_data():
     return b_cond1, b_cond2, interval, X
 
 
-def write_data(X, Y, Yprime):
+def write_data(X: dict, Y: dict, Yprime: dict):
     with open('rez.txt', 'w') as f:
         for key, value in X.items():
             f.write(" ".join([str(key), str(value),
                               str(Y[value]), str(Yprime[value]), "\n"]))
 
 
-def RungeKutta(f: Callable, h: np.double, x: np.double, y=0) -> np.double:
+def RungeKutta(f: Callable, h: float, x: float, y=0) -> float:
     """
     Runge-Kutta method of fourth order, also named as Kutta-Merson method
         Parameters:
@@ -71,15 +71,23 @@ def f(x):
     return 2
 
 
-def forward(X: dict, b_cond1: list, interval: list):
+def forward(X: dict, b_cond1: list, interval: list) -> dict, dict:
     """
-    Прямая прогонка: нужно решить следующие 2 системы:
+    Solving this 2 initial problems during forward step in case b0 != 0:
     -------------
-    z1' = -z1^2 - p(x)z1 + q(x)
+    z1' = -z1^2 - p(x) * z1 + q(x)
     z1(a) = - a0 / b0
     -------------
     z2' = -z2 * [z1 + p(x)] + f(x)
     z2(a) = A / b0
+
+    If b0 = 0 (thus a0 != 0), solve this 2 initial problems:
+    -------------
+    z1' = -z1^2 * q(x) + z_1 * p(x) + 1
+    z_1(a) = - b0 / a0
+    -------------
+    z2' = -z1 * [z2*q(x) + f(x)]
+    z2(a) = - A / a0
     """
 
     a0, b0, A = b_cond1
@@ -137,13 +145,18 @@ def forward(X: dict, b_cond1: list, interval: list):
         return Z1, Z2
 
 
-def backward(X: dict, b_cond2: list, interval: list, Z1: dict, Z2: dict):
+def backward(X: dict, b_cond1: list, b_cond2: list, interval: list, Z1: dict, Z2: dict) -> dict:
     """
-    Обратная прогонка: нужно решить следующую задачу Коши:
+    Solve this initial problem during backward step and when b0 != 0:
         y' = z1 * y + z2
         y(b) = (B - b1*z2(b)) / (a1 + b1*z1(b))
+
+    If a0 != 0 then might solve this initial problem:
+        y' = (y - z2) / z1
+        y(b) = (B*z1(b) + b1*z2(b)) / (b1 + a1*z1(b))
     """
 
+    a0, b0, A = b_cond1
     a1, b1, B = b_cond2
     a, b, n = interval
     h = (b - a) / n
@@ -182,9 +195,12 @@ def backward(X: dict, b_cond2: list, interval: list, Z1: dict, Z2: dict):
 
 
 def solve():
+    """
+    A function that solves boundary problem 
+    """
     b_cond1, b_cond2, interval, X = get_data()
     Z1, Z2 = forward(X, b_cond1, interval)
-    Y = backward(X, b_cond2, interval, Z1, Z2)
+    Y = backward(X, b_cond1, b_cond2, interval, Z1, Z2)
     Yprime = {}
     for x in X.values():
         Yprime[x] = Z1[x] * Y[x] + Z2[x]
