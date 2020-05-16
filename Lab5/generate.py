@@ -1,4 +1,3 @@
-import typing
 filename = 'data.txt'
 
 
@@ -15,6 +14,7 @@ def write_data():
 
 
 def main():
+    """Main function"""
     write_data()
 
 
